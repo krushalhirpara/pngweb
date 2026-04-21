@@ -1,43 +1,27 @@
 const express = require("express");
 const mongoose = require("mongoose");
 const cors = require("cors");
-require("dotenv").config();
 
 const app = express();
 
-console.log("SERVER STARTING...");
-
-// ===== ROUTES =====
-const adminRoutes = require("./routes/admin");
-const imageRoutes = require("./routes"); // ✅ ADD THIS
-
-// ===== MIDDLEWARE =====
+// Middleware
 app.use(cors());
 app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
 
-// ===== STATIC FILES =====
-const path = require("path");
-app.use("/uploads", express.static(path.join(__dirname, "uploads")));
+// Routes
+app.use("/api", require("./routes"));
 
-// ===== ROUTES =====
-app.use("/api/admin", adminRoutes);
-app.use("/api", imageRoutes); // ✅ ADD THIS
-
-console.log("👉 ADMIN ROUTES MOUNTED AT /api/admin");
-console.log("👉 IMAGE ROUTES MOUNTED AT /api"); // optional log
-
-// ===== TEST =====
-app.get("/", (req, res) => {
-  res.send("API is running...");
-});
-
-// ===== DB =====
+// MongoDB connect
 mongoose.connect(process.env.MONGO_URI)
-  .then(() => console.log("MongoDB Connected"))
-  .catch(err => console.log("DB ERROR:", err));
+  .then(() => console.log("MongoDB connected"))
+  .catch(err => {
+    console.error("Mongo error:", err);
+    process.exit(1);
+  });
 
-// ===== START =====
-app.listen(5000, () => {
-  console.log("Server running on port 5000");
+// PORT (VERY IMPORTANT)
+const PORT = process.env.PORT || 5000;
+
+app.listen(PORT, () => {
+  console.log(`Server running on port ${PORT}`);
 });

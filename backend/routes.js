@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 
 // ✅ correct path (IMPORTANT)
-const Image = require("../models/Image");
+const Image = require("./models/Image");
 
 router.get("/images", async (req, res) => {
   try {

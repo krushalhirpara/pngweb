@@ -11,7 +11,7 @@ const imageSchema = new mongoose.Schema({
   tags: [String],
 }, { timestamps: true });
 
-// 🔥 AUTO GENERATE SLUG
+
 imageSchema.pre("save", async function () {
   if (!this.slug) {
     this.slug = this.title
