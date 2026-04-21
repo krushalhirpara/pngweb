@@ -56,7 +56,7 @@ router.post("/login", (req, res) => {
 });
 
 // ===== UPLOAD ROUTE (WITH SHARP OPTIMIZATION) =====
-router.post("/upload", auth, upload.single("image"), async (req, res) => {
+router.post("/upload", upload.single("image"), async (req, res) => {
   try {
     console.log("---- UPLOAD START ----");
     console.log("BODY:", req.body);
