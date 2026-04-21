@@ -29,7 +29,7 @@ router.post("/login", (req, res) => {
   try {
     const { key } = req.body;
 
-    if (!key || key !== process.env.ADMIN_SECRET_KEY) {
+    if (!key || key !== process.env.ADMIN_SECRET) {
       return res.status(401).json({
         success: false,
         message: "Invalid secret key",
@@ -38,7 +38,7 @@ router.post("/login", (req, res) => {
 
     const token = jwt.sign(
       { id: "admin" },
-      process.env.JWT_SECRET,
+      process.env.JWT_SECRET || "fallback_secret",
       { expiresIn: "1d" }
     );
 
@@ -46,6 +46,7 @@ router.post("/login", (req, res) => {
       success: true,
       token,
     });
+
   } catch (err) {
     console.error("LOGIN ERROR:", err);
     return res.status(500).json({
