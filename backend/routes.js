@@ -2,7 +2,7 @@ const express = require("express");
 const router = express.Router();
 
 // ✅ correct path (IMPORTANT)
-const Image = require("./models/Image");
+const Image = require("../models/Image");
 
 router.get("/images", async (req, res) => {
   try {
@@ -19,12 +19,14 @@ router.get("/images", async (req, res) => {
   }
 });
 
-router.get("/image/:id", async (req, res) => {
+router.get("/image/:slug", async (req, res) => {
   try {
-    const image = await Image.findById(req.params.id);
+    const image = await Image.findOne({ slug: req.params.slug });
+
     if (!image) {
       return res.status(404).json({ success: false, message: "Image not found" });
     }
+
     res.json({ success: true, data: image });
   } catch (err) {
     console.error("DETAIL FETCH ERROR:", err);

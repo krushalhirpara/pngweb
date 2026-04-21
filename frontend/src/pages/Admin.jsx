@@ -35,7 +35,7 @@ const Admin = () => {
 
     setLoading(true);
     try {
-      const res = await axios.post('http://localhost:5000/api/admin/login', { key: secretKey });
+      const res = await axios.post('https://pngweb-production.up.railway.app/api/admin/login', { key: secretKey });
       if (res.data.success) {
         localStorage.setItem('token', res.data.token);
         // ✅ VERY IMPORTANT
@@ -55,7 +55,7 @@ const Admin = () => {
 
   const fetchImages = async () => {
     try {
-      const res = await axios.get("http://localhost:5000/api/admin/images");
+      const res = await axios.get("https://pngweb-production.up.railway.app/api/admin/images");
       if (res.data.success) {
         setImages(res.data.data);
       }
@@ -110,7 +110,7 @@ const Admin = () => {
       form.append("tags", formData.tags);
 
       const res = await axios.post(
-        "http://localhost:5000/api/admin/upload",
+        "https://pngweb-production.up.railway.app/api/admin/upload",
         form,
         {
           headers: {
@@ -150,7 +150,7 @@ const Admin = () => {
       const token = localStorage.getItem("token");
       console.log("TOKEN:", token);
       const res = await axios.delete(
-        `http://localhost:5000/api/admin/delete/${id}`,
+        `https://pngweb-production.up.railway.app/api/admin/delete/${id}`,
         {
           headers: {
             Authorization: `Bearer ${token}`
@@ -323,7 +323,7 @@ const Admin = () => {
                 <div key={img._id} className="group relative rounded-xl border border-slate-200 dark:border-slate-700 overflow-hidden bg-slate-50 dark:bg-slate-800">
                   <div className="aspect-square p-4 flex items-center justify-center">
                     <img
-                      src={`http://localhost:5000${img.imageUrl}`}
+                      src={`https://pngweb-production.up.railway.app${img.imageUrl}`}
                       alt={img.title}
                       className="max-h-full max-w-full object-contain drop-shadow-md"
                     />

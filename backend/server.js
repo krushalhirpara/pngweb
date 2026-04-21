@@ -5,11 +5,11 @@ require("dotenv").config();
 
 const app = express();
 
-// ===== DEBUG =====
 console.log("SERVER STARTING...");
 
 // ===== ROUTES =====
 const adminRoutes = require("./routes/admin");
+const imageRoutes = require("./routes"); // ✅ ADD THIS
 
 // ===== MIDDLEWARE =====
 app.use(cors());
@@ -22,7 +22,10 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // ===== ROUTES =====
 app.use("/api/admin", adminRoutes);
+app.use("/api", imageRoutes); // ✅ ADD THIS
+
 console.log("👉 ADMIN ROUTES MOUNTED AT /api/admin");
+console.log("👉 IMAGE ROUTES MOUNTED AT /api"); // optional log
 
 // ===== TEST =====
 app.get("/", (req, res) => {

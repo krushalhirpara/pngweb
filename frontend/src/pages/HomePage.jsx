@@ -85,7 +85,7 @@ function HomePage() {
   const fetchImages = async () => {
     try {
       setIsLoading(true);
-      const res = await axios.get("http://localhost:5000/api/admin/images");
+      const res = await axios.get("https://pngweb-production.up.railway.app/api/admin/images");
       if (res.data.success) {
         setImages([...localImages, ...res.data.data]);
       }
@@ -95,7 +95,7 @@ function HomePage() {
       setIsLoading(false);
     }
   };
-  
+
   // Debug logs requested
   console.log("Local Assets loaded:", images.length);
 
@@ -198,7 +198,7 @@ function HomePage() {
 
       {isLoading ? (
         <div className="flex min-h-[300px] items-center justify-center">
-           <div className="h-12 w-12 animate-spin rounded-full border-4 border-brand-100 border-t-brand-500" />
+          <div className="h-12 w-12 animate-spin rounded-full border-4 border-brand-100 border-t-brand-500" />
         </div>
       ) : (
         <>
