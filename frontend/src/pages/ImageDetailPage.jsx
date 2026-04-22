@@ -3,6 +3,7 @@ import axios from 'axios'
 import { Link, Navigate, useParams } from 'react-router-dom'
 import ImageCard from '../components/ImageCard'
 import { localImages } from '../data/categories'
+import { Link } from "react-router-dom";
 
 const transparentGridStyle = {
   backgroundColor: '#f8fafc',
@@ -53,8 +54,9 @@ function ImageDetailPage() {
   const [dimension, setDimension] = useState('Loading...')
   const [fileSize, setFileSize] = useState('Loading...')
   const [isDownloading, setIsDownloading] = useState(false)
+  const [image, setImage] = useState(null);
 
-  const serverUrl = "http://localhost:5000";
+  const serverUrl = "https://pngweb-production.up.railway.app";
 
   useEffect(() => {
     const fetchData = async () => {
@@ -62,7 +64,7 @@ function ImageDetailPage() {
         setIsLoading(true);
         // Wait for a small microtask to ensure localImages are ready
         await new Promise(resolve => setTimeout(resolve, 0));
-        
+
         let apiImages = [];
         try {
           const res = await axios.get(`${serverUrl}/api/admin/images`);
@@ -72,11 +74,11 @@ function ImageDetailPage() {
         } catch (apiErr) {
           console.warn("Backend API unreachable, using local assets only");
         }
-        
+
         // 🔥 Hybrid Merge
         const allImages = [...localImages, ...apiImages];
         const found = allImages.find(img => img.slug === slug);
-        
+
         if (found) {
           const src = found.isLocal ? found.imageUrl : `${serverUrl}${found.imageUrl}`;
           setItem({
@@ -104,6 +106,24 @@ function ImageDetailPage() {
 
     fetchData();
   }, [slug]);
+
+  useEffect(() => {
+    if (item) {
+      document.title = `${item.title} PNG Download Free | PNGWale`;
+
+      let meta = document.querySelector("meta[name='description']");
+      if (!meta) {
+        meta = document.createElement("meta");
+        meta.name = "description";
+        document.head.appendChild(meta);
+      }
+
+      meta.setAttribute(
+        "content",
+        `${item.title} free PNG image download with transparent background. High quality PNG images on PNGWale.`
+      );
+    }
+  }, [item]);
 
   // Combined logic for finding related items and main item into one useEffect for performance and consistency with local data
 
@@ -264,7 +284,7 @@ function ImageDetailPage() {
                 disabled={isDownloading}
               >
                 {isDownloading ? (
-                   <span className="h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white" />
+                  <span className="h-5 w-5 animate-spin rounded-full border-2 border-white/30 border-t-white" />
                 ) : (
                   <>
                     <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -282,8 +302,12 @@ function ImageDetailPage() {
 
           <div className="rounded-[2rem] border border-slate-100 bg-slate-50 p-6 dark:border-slate-800 dark:bg-slate-950">
             <p className="text-xs leading-relaxed text-slate-500">
-              <strong className="text-slate-900 dark:text-white">Commercial License:</strong> This asset is free for personal and commercial use. 
-              Attribution to <span className="font-black text-brand-500">PNGWALE</span> is appreciated but not mandatory.
+              <strong className="text-slate-900 dark:text-white">Commercial License:</strong> This asset is free for personal and commercial use.
+              Attribution to{" "}
+              <a href="/contact" className="font-black text-brand-500 hover:underline">
+                PNGWALE
+              </a>{" "}
+              is appreciated but not mandatory.
             </p>
           </div>
         </div>

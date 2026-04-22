@@ -1,9 +1,8 @@
 export const categories = [
-  "Alphabet",
+  "All",
   "Clipart",
   "Festival",
   "Flower",
-  "Numbers",
   "Shape",
   "Vector"
 ];
@@ -16,7 +15,7 @@ export const localImages = Object.entries(rawAssets)
     const parts = path.split('/');
     const category = parts[parts.length - 2];
     const filename = parts[parts.length - 1];
-    
+
     // Skip if file is directly in the assets folder
     if (!category || category.toLowerCase() === 'assets') return null;
 
@@ -27,7 +26,7 @@ export const localImages = Object.entries(rawAssets)
       .split(' ')
       .map(word => word.charAt(0).toUpperCase() + word.slice(1))
       .join(' ');
-    
+
     const id = btoa(path).replace(/\//g, '_').replace(/\+/g, '-').replace(/=/g, '');
     const slug = filename
       .toLowerCase()

@@ -14,27 +14,29 @@ const animatedPrompts = [
   "download clean HD PNG assets",
 ];
 
-
-
 function HomePage() {
   const [images, setImages] = useState(localImages);
   const [isLoading, setIsLoading] = useState(true);
   const { categorySlug } = useParams();
   const [searchParams, setSearchParams] = useSearchParams();
   const [heroSearch, setHeroSearch] = useState("");
+
   const [promptIndex, setPromptIndex] = useState(0);
   const [typedPrompt, setTypedPrompt] = useState("");
   const [isDeleting, setIsDeleting] = useState(false);
 
-  const allCategories = useMemo(() => [
-    "All",
-    ...new Set(images.map(img => img.category))
-  ], [images]);
+  // ❌ Hide categories
+  const HIDDEN_CATEGORIES = ["Alphabet", "Numbers"];
 
-  const dynamicCategories = useMemo(() => {
-    return allCategories;
-  }, [allCategories]);
+  // ✅ Dynamic categories (hidden remove)
+  const allCategories = useMemo(() => {
+    const unique = [...new Set(images.map(img => img.category))];
+    return ["All", ...unique.filter(cat => !HIDDEN_CATEGORIES.includes(cat))];
+  }, [images]);
 
+  const dynamicCategories = allCategories;
+
+  // slug mapping
   const dynamicSlugToCategory = useMemo(() => {
     const map = {};
     images.forEach((img) => {
@@ -51,8 +53,8 @@ function HomePage() {
 
   const query = (searchParams.get("q") ?? "").trim().toLowerCase();
 
+  // 🔥 Typing animation
   useEffect(() => {
-    // Typing animation logic stays the same
     const currentPrompt = animatedPrompts[promptIndex];
     let delay = isDeleting ? 35 : 65;
     if (!isDeleting && typedPrompt === currentPrompt) delay = 1100;
@@ -96,17 +98,19 @@ function HomePage() {
     }
   };
 
-  // Debug logs requested
-  console.log("Local Assets loaded:", images.length);
-
+  // 🔥 FILTER LOGIC (IMPORTANT FIX)
   const filteredImages = useMemo(() => {
-    let result = activeCategory === "All"
-      ? images
-      : images.filter(img => img.category === activeCategory);
+    let result;
+
+    if (activeCategory === "All") {
+      result = images; // 🔥 All ma badha ave (including Alphabet & Numbers)
+    } else {
+      result = images.filter(img => img.category === activeCategory);
+    }
 
     if (query) {
       result = result.filter((item) => {
-        const haystack = `${item.title} ${item.description || ''} ${item.keywords?.join(" ") || item.tags?.join(" ") || ''}`.toLowerCase();
+        const haystack = `${item.title} ${item.description || ''} ${item.tags?.join(" ") || ''}`.toLowerCase();
         return haystack.includes(query);
       });
     }
@@ -130,88 +134,41 @@ function HomePage() {
 
   return (
     <section>
-      <div
-        className="relative left-1/2 right-1/2 mb-8 w-screen -translate-x-1/2 overflow-hidden pb-10 text-white md:pb-14"
-        style={{ paddingTop: "calc(var(--header-height, 0px) + 1rem)" }}
-      >
-        <div className="hero-gradient-heart absolute inset-0" aria-hidden="true" />
-        <div className="hero-dark-vignette absolute inset-0" aria-hidden="true" />
+      {/* HERO */}
+      <div className="hero-section">
+        <h1 className="text-3xl font-bold text-center">
+          Creative Images PNGWALE
+        </h1>
 
-        <div className="relative mx-auto flex w-full max-w-7xl flex-col items-center px-4 text-center md:px-6">
-          <div className="w-full max-w-5xl">
-            <h1 className="text-2xl font-black leading-tight sm:text-3xl md:text-5xl">
-              Creative Images PNGWALE
-            </h1>
-
-            <form
-              onSubmit={handleHeroSearch}
-              className="my-5 w-full rounded-[1.75rem] border border-white/20 bg-white/10 p-3 text-left shadow-2xl backdrop-blur-md transition-all focus-within:border-white/50 focus-within:ring-4 focus-within:ring-white/5 sm:my-6 sm:rounded-[2rem] sm:p-4"
-            >
-              <textarea
-                value={heroSearch}
-                onChange={(event) => setHeroSearch(event.target.value)}
-                placeholder={`Ask PNGWALE to ${typedPrompt} ...`}
-                className="min-h-[92px] w-full resize-none bg-transparent px-2 pt-1 text-lg leading-tight text-white placeholder:text-zinc-400 focus:outline-none sm:min-h-[98px] sm:text-xl md:text-2xl"
-              />
-
-              <div className="mt-3 flex items-center justify-between gap-3">
-                <button
-                  type="button"
-                  className="inline-flex h-11 w-11 items-center justify-center rounded-full border border-zinc-600 text-zinc-200 transition hover:bg-zinc-700"
-                  aria-label="Add attachment"
-                >
-                  <FiPlus className="h-5 w-5" />
-                </button>
-
-                <div className="flex items-center gap-3 text-zinc-400">
-                  <span className="text-base sm:text-lg">Plan</span>
-                  <button
-                    type="button"
-                    className="inline-flex h-9 w-9 items-center justify-center rounded-full transition hover:bg-zinc-700"
-                    aria-label="Voice input"
-                  >
-                    <FiMic className="h-5 w-5" />
-                  </button>
-                  <button
-                    type="submit"
-                    className="inline-flex h-11 w-11 items-center justify-center rounded-full bg-zinc-200 text-zinc-900 transition hover:bg-white"
-                    aria-label="Submit search"
-                  >
-                    <FiArrowUp className="h-5 w-5" />
-                  </button>
-                </div>
-              </div>
-            </form>
-
-            <p className="mt-2 max-w-2xl text-xs text-white/85 sm:text-sm md:mx-auto md:text-base">
-              Download transparent PNG resources in multiple categories with a
-              full responsive preview experience.
-            </p>
-          </div>
-        </div>
+        <form onSubmit={handleHeroSearch}>
+          <textarea
+            value={heroSearch}
+            onChange={(e) => setHeroSearch(e.target.value)}
+            placeholder={`Ask PNGWALE to ${typedPrompt} ...`}
+          />
+          <button type="submit">Search</button>
+        </form>
       </div>
 
+      {/* ✅ CATEGORY TABS */}
       <CategoryTabs
         categories={dynamicCategories}
         activeCategory={activeCategory}
       />
 
+      {/* IMAGES */}
       {isLoading ? (
-        <div className="flex min-h-[300px] items-center justify-center">
-          <div className="h-12 w-12 animate-spin rounded-full border-4 border-brand-100 border-t-brand-500" />
-        </div>
+        <div className="loader">Loading...</div>
       ) : (
         <>
-          <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+          <div className="grid">
             {filteredImages.map((item, index) => (
               <ImageCard key={item._id} item={item} index={index} />
             ))}
           </div>
 
           {filteredImages.length === 0 && (
-            <p className="rounded-xl border border-brand-100 bg-white p-8 text-center text-slate-500 dark:border-slate-700 dark:bg-slate-800 dark:text-slate-300">
-              No images found for this selection.
-            </p>
+            <p>No images found</p>
           )}
         </>
       )}
