@@ -141,9 +141,20 @@ router.get("/images", async (req, res) => {
     console.log("GET /images HIT");
     const images = await Image.find().sort({ createdAt: -1 });
 
+    const data = images.map(img => {
+      const imageUrl = img.imageUrl.startsWith("http")
+        ? img.imageUrl
+        : `https://pngwale.com${img.imageUrl}`;
+      
+      return {
+        ...img.toObject(),
+        imageUrl
+      };
+    });
+
     res.json({
       success: true,
-      data: images,
+      data: data,
     });
   } catch (err) {
     console.error("FETCH ERROR:", err);

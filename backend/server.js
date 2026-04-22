@@ -10,19 +10,18 @@ app.use(cors());
 app.use(express.json());
 
 // ================= STATIC FILES =================
-// Serve uploaded images
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // ================= ROUTES =================
 app.use("/api", require("./routes"));
 app.use("/api/admin", require("./routes/admin"));
 
-// ================= IMAGE SITEMAP (VERY IMPORTANT) =================
+// ================= IMAGE SITEMAP =================
 const Image = require("./models/Image");
 
 app.get("/sitemap.xml", async (req, res) => {
   try {
-    const images = await Image.find();
+    const images = await Image.find().sort({ updatedAt: -1 });
 
     let xml = `<?xml version="1.0" encoding="UTF-8"?>
 <urlset 
@@ -40,7 +39,6 @@ app.get("/sitemap.xml", async (req, res) => {
 
     // Image pages
     images.forEach(img => {
-      // image URL fix (local + production)
       const imageUrl = img.imageUrl.startsWith("http")
         ? img.imageUrl
         : `https://pngwale.com${img.imageUrl}`;
@@ -49,19 +47,21 @@ app.get("/sitemap.xml", async (req, res) => {
 <url>
   <loc>https://pngwale.com/image/${img.slug}</loc>
   <lastmod>${new Date(img.updatedAt).toISOString()}</lastmod>
-  <changefreq>daily</changefreq>
+  <changefreq>weekly</changefreq>
   <priority>0.9</priority>
 
   <image:image>
     <image:loc>${imageUrl}</image:loc>
-    <image:title>${img.title}</image:title>
+    <image:title><![CDATA[${img.title}]]></image:title>
+    <image:caption><![CDATA[${img.title}]]></image:caption>
   </image:image>
 </url>`;
     });
 
     xml += `</urlset>`;
 
-    res.header("Content-Type", "application/xml");
+    // ✅ IMPORTANT FIX
+    res.set("Content-Type", "application/xml");
     res.send(xml);
 
   } catch (err) {
