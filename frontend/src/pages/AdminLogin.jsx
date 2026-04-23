@@ -1,8 +1,8 @@
 import React, { useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { FiLock } from 'react-icons/fi';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import API from '../api';
 
 const AdminLogin = () => {
   const [secretKey, setSecretKey] = useState('');
@@ -20,7 +20,6 @@ const AdminLogin = () => {
     try {
       console.log("🚀 Sending request...");
 
-      // 🔥 IMPORTANT CHANGE → FULL URL use karo
       const res = await axios.post(
         'https://pngwale.com/api/admin/login',
         { secretKey }
