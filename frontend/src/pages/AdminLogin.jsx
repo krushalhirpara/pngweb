@@ -11,37 +11,43 @@ const AdminLogin = () => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    console.log("🚀 Login process started...");
-    console.log("🔑 Secret Key entered:", secretKey ? "****" : "EMPTY");
 
     if (!secretKey) {
-      console.log("❌ No secret key entered");
       return toast.error('Please enter secret key');
     }
 
     setLoading(true);
     try {
-      console.log("📡 Sending POST request to /api/admin/login...");
-      const res = await axios.post('/api/admin/login', { secretKey });
-      
-      console.log("✅ Response received:", res.data);
+      console.log("🚀 Sending request...");
+
+      // 🔥 IMPORTANT CHANGE → FULL URL use karo
+      const res = await axios.post(
+        'https://pngwale.com/api/admin/login',
+        { secretKey }
+      );
+
+      console.log("✅ Response:", res.data);
 
       if (res.data.success) {
         localStorage.setItem('token', res.data.token);
         toast.success('Login successful');
-        console.log("🏃 Redirecting to /admin/dashboard...");
-        navigate('/admin/dashboard');
+
+        // redirect fix
+        window.location.href = '/admin/dashboard';
       } else {
-        console.log("❌ Login failed:", res.data.message);
         toast.error(res.data.message || 'Login failed');
       }
     } catch (err) {
-      console.error("🔥 LOGIN ERROR:", err);
-      const errorMsg = err.response?.data?.message || 'Login failed. Please check your key.';
-      toast.error(errorMsg);
+      console.error("🔥 ERROR:", err);
+
+      // better error handling
+      if (err.response) {
+        toast.error(err.response.data?.message || 'Invalid key');
+      } else {
+        toast.error('Server not reachable');
+      }
     } finally {
       setLoading(false);
-      console.log("🏁 Login process finished.");
     }
   };
 
@@ -53,7 +59,9 @@ const AdminLogin = () => {
             <FiLock className="text-indigo-600 dark:text-indigo-400 text-2xl" />
           </div>
           <h1 className="text-2xl font-bold dark:text-white">Admin Access</h1>
-          <p className="text-slate-500 dark:text-slate-400 mt-2">Enter secret key to continue</p>
+          <p className="text-slate-500 dark:text-slate-400 mt-2">
+            Enter secret key to continue
+          </p>
         </div>
 
         <form onSubmit={handleLogin} className="space-y-6">
@@ -67,6 +75,7 @@ const AdminLogin = () => {
               required
             />
           </div>
+
           <button
             type="submit"
             disabled={loading}
