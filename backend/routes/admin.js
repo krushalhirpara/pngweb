@@ -27,9 +27,10 @@ const upload = multer({
 // ===== LOGIN ROUTE =====
 router.post("/login", (req, res) => {
   try {
-    const { key } = req.body;
+    const { key, secretKey } = req.body;
+    const providedKey = key || secretKey;
 
-    if (!key || key !== process.env.ADMIN_SECRET_KEY) {
+    if (!providedKey || providedKey !== process.env.ADMIN_SECRET_KEY) {
       return res.status(401).json({
         success: false,
         message: "Invalid secret key",

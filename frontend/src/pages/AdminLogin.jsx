@@ -11,21 +11,37 @@ const AdminLogin = () => {
 
   const handleLogin = async (e) => {
     e.preventDefault();
-    if (!secretKey) return toast.error('Please enter secret key');
+    console.log("🚀 Login process started...");
+    console.log("🔑 Secret Key entered:", secretKey ? "****" : "EMPTY");
+
+    if (!secretKey) {
+      console.log("❌ No secret key entered");
+      return toast.error('Please enter secret key');
+    }
 
     setLoading(true);
     try {
-      // Use relative path if proxied, or use environment variable
-      const res = await axios.post('/api/admin/login', { key: secretKey });
+      console.log("📡 Sending POST request to /api/admin/login...");
+      const res = await axios.post('/api/admin/login', { secretKey });
+      
+      console.log("✅ Response received:", res.data);
+
       if (res.data.success) {
         localStorage.setItem('token', res.data.token);
         toast.success('Login successful');
+        console.log("🏃 Redirecting to /admin/dashboard...");
         navigate('/admin/dashboard');
+      } else {
+        console.log("❌ Login failed:", res.data.message);
+        toast.error(res.data.message || 'Login failed');
       }
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Login failed');
+      console.error("🔥 LOGIN ERROR:", err);
+      const errorMsg = err.response?.data?.message || 'Login failed. Please check your key.';
+      toast.error(errorMsg);
     } finally {
       setLoading(false);
+      console.log("🏁 Login process finished.");
     }
   };
 

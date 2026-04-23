@@ -11,7 +11,7 @@ const Admin = () => {
   const [images, setImages] = useState([]);
   const [formData, setFormData] = useState({
     title: '',
-    category: allCategories.filter(c => c !== 'All')[0] || 'Vector',
+    category: allCategories[0] || 'Vector',
     tags: '',
   });
 
@@ -122,7 +122,7 @@ const Admin = () => {
         // Reset form
         setFormData({
           title: "",
-          category: allCategories.filter(c => c !== 'All')[0] || "Vector",
+          category: allCategories[0] || "Vector",
           tags: ""
         });
         setImageFile(null);
@@ -236,7 +236,7 @@ const Admin = () => {
                   className="w-full px-4 py-2.5 rounded-xl border border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 dark:text-white"
                   required
                 >
-                  {allCategories.filter(c => c !== 'All').map((cat) => (
+                  {allCategories.map((cat) => (
                     <option key={cat}>{cat}</option>
                   ))}
                 </select>
