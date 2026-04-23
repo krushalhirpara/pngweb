@@ -21,7 +21,7 @@ const AdminLogin = () => {
       console.log("🚀 Sending request...");
 
       const res = await axios.post(
-        'https://pngwale.com/api/admin/login',
+        'https://pngweb-production.up.railway.app/api/admin/login',
         { secretKey }
       );
 
