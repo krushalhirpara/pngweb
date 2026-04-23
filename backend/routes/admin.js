@@ -29,7 +29,7 @@ router.post("/login", (req, res) => {
   try {
     const { key } = req.body;
 
-    if (!key || key !== process.env.ADMIN_SECRET) {
+    if (!key || key !== process.env.ADMIN_SECRET_KEY) {
       return res.status(401).json({
         success: false,
         message: "Invalid secret key",
@@ -57,7 +57,7 @@ router.post("/login", (req, res) => {
 });
 
 // ===== UPLOAD ROUTE (WITH SHARP OPTIMIZATION) =====
-router.post("/upload", upload.single("image"), async (req, res) => {
+router.post("/upload", auth, upload.single("image"), async (req, res) => {
   try {
     console.log("---- UPLOAD START ----");
     console.log("BODY:", req.body);

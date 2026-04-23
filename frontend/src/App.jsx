@@ -7,8 +7,17 @@ import HomePage from './pages/HomePage'
 import ImageDetailPage from './pages/ImageDetailPage'
 import StaticPage from './pages/StaticPage'
 import Admin from './pages/Admin'
+import AdminLogin from './pages/AdminLogin'
 import { Toaster } from 'react-hot-toast'
 
+// Protected Route Component
+const ProtectedRoute = ({ children }) => {
+  const token = localStorage.getItem('token');
+  if (!token) {
+    return <Navigate to="/admin/login" replace />;
+  }
+  return children;
+};
 
 const pageText = {
   about: `Welcome to PNGWALE – your simple and reliable source for high-quality PNG images and vector resources.
@@ -279,9 +288,14 @@ const galleryPathRegex = /^\/$|^\/(vector|clipart|festival|flower|shape)$/
 function App() {
   const location = useLocation()
   const [theme, setTheme] = useState('light')
+  useEffect(() => {
+    const saved = localStorage.getItem('theme') || 'light';
+    setTheme(saved);
+  }, []);
 
   useEffect(() => {
-    document.documentElement.classList.toggle('dark', theme === 'dark')
+    document.documentElement.classList.toggle('dark', theme === 'dark');
+    localStorage.setItem('theme', theme);
   }, [theme])
 
   useEffect(() => {
@@ -310,17 +324,16 @@ function App() {
   }
 
   return (
-    <div className="min-h-screen bg-slate-50 text-slate-900 transition-colors dark:bg-slate-950 dark:text-slate-100">
+    <div className="min-h-screen bg-slate-50 text-slate-900 transition-colors dark:bg-slate-900 dark:text-slate-100">
       {!location.pathname.startsWith('/admin') && (
         <Header
           theme={theme}
           onToggleTheme={toggleTheme}
-          transparentOnTop={isHomeGradientPage}
         />
       )}
       <Toaster position="top-right" reverseOrder={false} />
 
-      <main className={`mx-auto w-full max-w-7xl px-4 pb-8 md:px-6 ${isHomeGradientPage ? 'pt-0' : 'pt-6 md:pt-8'}`}>
+      <main className={`mx-auto w-full pb-8 ${location.pathname === '/' ? 'pt-0' : 'max-w-7xl px-4 pt-20 md:pt-24 md:px-6'}`}>
         <Routes>
           {/* 1. Static/Specific Routes */}
           <Route path="/" element={<HomePage />} />
@@ -332,10 +345,16 @@ function App() {
           <Route path="/dmca" element={<StaticPage title="DMCA" body={pageText.dmca} />} />
           <Route path="/license" element={<StaticPage title="License Page" body={pageText.license} />} />
           <Route path="/contact-us" element={<ContactPage />} />
-          <Route path="/admin" element={
-            <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
-              <Admin />
-            </div>
+          
+          {/* Admin Routes */}
+          <Route path="/admin/login" element={<AdminLogin />} />
+          <Route path="/admin" element={<Navigate to="/admin/dashboard" replace />} />
+          <Route path="/admin/dashboard" element={
+            <ProtectedRoute>
+              <div className="min-h-screen bg-slate-50 dark:bg-slate-950">
+                <Admin />
+              </div>
+            </ProtectedRoute>
           } />
 
           {/* 2. Dynamic Category Routes */}

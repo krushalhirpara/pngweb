@@ -1,4 +1,4 @@
-﻿import { Link } from 'react-router-dom'
+import { Link } from 'react-router-dom'
 import blackLogo from '../assets/pngwale-black-logo.png'
 import whiteLogo from '../assets/pngwale-white-logo.png'
 
@@ -15,7 +15,7 @@ function Footer({ theme }) {
   return (
     <footer className="mt-14 border-t border-brand-100 bg-white text-slate-800 dark:border-slate-800 dark:bg-slate-900 dark:text-white">
       <div className="mx-auto flex max-w-7xl flex-col items-center gap-4 px-4 py-8 text-center md:px-6">
-        <img src={activeLogo} alt="PNGWALE" className="h-14 w-auto" />
+        <img src={activeLogo} alt="PNGWALE" className="h-10 w-auto md:h-14" />
         <div className="flex flex-wrap justify-center gap-3 text-sm">
           {links.map((item) => (
             <Link

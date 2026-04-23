@@ -3,15 +3,7 @@ import axios from 'axios'
 import { Link, Navigate, useParams } from 'react-router-dom'
 import ImageCard from '../components/ImageCard'
 import { localImages } from '../data/categories'
-import { Link } from "react-router-dom";
 
-const transparentGridStyle = {
-  backgroundColor: '#f8fafc',
-  backgroundImage:
-    'linear-gradient(45deg, #e5e7eb 25%, transparent 25%), linear-gradient(-45deg, #e5e7eb 25%, transparent 25%), linear-gradient(45deg, transparent 75%, #e5e7eb 75%), linear-gradient(-45deg, transparent 75%, #e5e7eb 75%)',
-  backgroundSize: '24px 24px',
-  backgroundPosition: '0 0, 0 12px, 12px -12px, -12px 0px',
-}
 
 const formatBytes = (bytes) => {
   if (!bytes || Number.isNaN(bytes)) return 'Unknown'
@@ -56,7 +48,7 @@ function ImageDetailPage() {
   const [isDownloading, setIsDownloading] = useState(false)
   const [image, setImage] = useState(null);
 
-  const serverUrl = "https://pngweb-production.up.railway.app";
+  const serverUrl = "https://pngwale.com";
 
   useEffect(() => {
     const fetchData = async () => {
@@ -196,24 +188,24 @@ function ImageDetailPage() {
   return (
     <section className="animate-fade-in-up space-y-10 py-6 md:py-12">
       <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-        <div className="space-y-1">
-          <p className="text-xs font-black uppercase tracking-[0.3em] text-brand-500">
+        <div className="space-y-2">
+          <p className="text-xs font-black uppercase tracking-[0.4em] text-blue-600">
             {item.category}
           </p>
-          <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white md:text-5xl">
+          <h1 className="text-3xl font-black tracking-tight text-slate-900 dark:text-white sm:text-4xl md:text-6xl">
             {item.title}
           </h1>
         </div>
         <Link
           to="/"
-          className="flex w-fit items-center gap-2 rounded-full border border-slate-200 bg-white px-6 py-2.5 text-sm font-bold text-slate-900 shadow-sm transition-all hover:bg-slate-50 hover:shadow-md dark:border-slate-800 dark:bg-slate-900 dark:text-white dark:hover:bg-slate-800"
+          className="flex w-fit items-center gap-2 rounded-full border border-slate-200 bg-white px-8 py-3 text-sm font-black text-slate-900 shadow-sm transition-all hover:bg-slate-50 hover:shadow-lg dark:border-slate-800 dark:bg-slate-900 dark:text-white dark:hover:bg-slate-800"
         >
           <span>&larr;</span> Back to Gallery
         </Link>
       </div>
 
       <div className="grid items-stretch gap-8 xl:grid-cols-[1.3fr_0.7fr]">
-        <div className="flex flex-col rounded-[2.5rem] border border-slate-100 bg-white p-5 shadow-2xl ring-1 ring-slate-900/5 dark:border-slate-800 dark:bg-slate-900/50 md:p-8">
+        <div className="flex flex-col rounded-3xl border border-slate-100 bg-white p-5 shadow-2xl dark:border-slate-800 dark:bg-slate-900/50 md:p-8">
           <div className="mb-6 flex flex-wrap items-center gap-4">
             <div className="flex items-center rounded-2xl bg-slate-100 p-1 dark:bg-slate-800">
               <button
@@ -244,22 +236,25 @@ function ImageDetailPage() {
           </div>
 
           <div
-            className="relative flex h-[30rem] items-center justify-center overflow-auto rounded-[2rem] border border-slate-100 bg-slate-50 dark:border-slate-800 dark:bg-slate-950 md:h-[40rem]"
-            style={transparentGridStyle}
+            className="relative flex h-[30rem] items-center justify-center overflow-auto rounded-[2rem] border border-slate-100 bg-[#f8fafc] md:h-[40rem] checkerboard"
           >
             <img
               src={item.src}
-              alt={item.title}
+              alt={item.title || "PNGWALE Image"}
               style={{ transform: `scale(${zoom})` }}
               className="max-h-[90%] max-w-[90%] object-contain transition-transform duration-200"
               draggable="false"
+              onError={(e) => {
+                console.error("Detail Image Load Failed:", item.src);
+                e.target.src = "https://placehold.co/800x600/f1f5f9/64748b?text=Image+Unavailable";
+              }}
             />
           </div>
         </div>
 
         <div className="flex flex-col gap-6">
-          <div className="rounded-[2.5rem] border border-slate-100 bg-white p-8 shadow-xl ring-1 ring-slate-900/5 dark:border-slate-800 dark:bg-slate-900">
-            <h3 className="mb-6 text-xl font-black tracking-tight text-slate-900 dark:text-white">Properties</h3>
+          <div className="rounded-3xl border border-slate-100 bg-white p-8 shadow-2xl dark:border-slate-800 dark:bg-slate-900">
+            <h3 className="mb-8 text-2xl font-black tracking-tight text-slate-900 dark:text-white">Properties</h3>
             <div className="grid gap-5 text-sm">
               {[
                 { label: 'Asset Title', value: item.title },
@@ -279,7 +274,7 @@ function ImageDetailPage() {
             <div className="mt-10 space-y-4">
               <button
                 type="button"
-                className="flex w-full items-center justify-center gap-3 rounded-2xl bg-brand-500 py-4 text-base font-black text-white shadow-xl shadow-brand-500/30 transition-all hover:bg-brand-600 hover:shadow-brand-600/40 active:scale-95"
+                className="flex w-full items-center justify-center gap-3 rounded-2xl bg-blue-600 py-5 text-lg font-black text-white shadow-xl shadow-blue-600/30 transition-all hover:bg-blue-700 hover:shadow-blue-700/40 active:scale-95"
                 onClick={handleDownload}
                 disabled={isDownloading}
               >
@@ -300,13 +295,14 @@ function ImageDetailPage() {
             </div>
           </div>
 
-          <div className="rounded-[2rem] border border-slate-100 bg-slate-50 p-6 dark:border-slate-800 dark:bg-slate-950">
-            <p className="text-xs leading-relaxed text-slate-500">
+          <div className="rounded-2xl border-l-4 border-blue-500 bg-blue-50 p-6 dark:border-slate-800 dark:bg-blue-900/10">
+            <p className="text-sm leading-relaxed text-slate-600 dark:text-slate-400">
               <strong className="text-slate-900 dark:text-white">Commercial License:</strong> This asset is free for personal and commercial use.
               Attribution to{" "}
-              <a href="/contact" className="font-black text-brand-500 hover:underline">
+              <Link to="/contact-us" className="font-bold text-brand-500 hover:underline">
                 PNGWALE
-              </a>{" "}
+              </Link>
+{" "}
               is appreciated but not mandatory.
             </p>
           </div>
