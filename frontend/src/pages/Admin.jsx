@@ -30,7 +30,7 @@ const Admin = () => {
 
   const fetchImages = async () => {
     try {
-      const res = await axios.get("/api/admin/images");
+      const res = await axios.get("https://pngweb-production.up.railway.app/api/admin/images");
       if (res.data.success) {
         setImages(res.data.data);
       }
@@ -89,22 +89,24 @@ const Admin = () => {
 
     try {
       setLoading(true);
-      console.log("📦 Preparing FormData...", {
-        title: formData.title,
-        category: formData.category,
-        tags: formData.tags,
-        file: imageFile.name
-      });
+      console.log("📦 Selected file:", imageFile);
 
-      const formData = new FormData();
-      formData.append("image", imageFile);
-      formData.append("title", formDataState.title);
-      formData.append("category", formDataState.category);
-      formData.append("tags", formDataState.tags);
+      const uploadData = new FormData();
+      uploadData.append("image", imageFile);
+      uploadData.append("title", formData.title);
+      uploadData.append("category", formData.category);
+      uploadData.append("tags", formData.tags);
 
+      // Log FormData entries for debugging
+      console.log("📦 FormData entries:");
+      for (let pair of uploadData.entries()) {
+        console.log(`${pair[0]}: ${pair[1]}`);
+      }
+
+      console.log("📡 Sending POST request to production API...");
       const res = await axios.post(
         "https://pngweb-production.up.railway.app/api/admin/upload",
-        formData,
+        uploadData,
         {
           headers: {
             "Content-Type": "multipart/form-data",
@@ -113,7 +115,7 @@ const Admin = () => {
         }
       );
 
-      console.log("✅ Response received:", res.data);
+      console.log("✅ Response:", res.data);
 
       if (res.data.success) {
         toast.success("Image Uploaded Successfully!");

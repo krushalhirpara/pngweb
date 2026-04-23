@@ -8,11 +8,23 @@ router.get("/images", async (req, res) => {
   try {
     console.log("👉 Fetching images...");
 
-    const images = await Image.find();
+    const images = await Image.find().sort({ createdAt: -1 });
 
-    console.log("👉 Found:", images.length);
+    const data = images.map(img => {
+      // Ensure absolute URL for frontend
+      const imageUrl = img.imageUrl.startsWith("http")
+        ? img.imageUrl
+        : `https://pngweb-production.up.railway.app${img.imageUrl}`;
+      
+      return {
+        ...img.toObject(),
+        imageUrl
+      };
+    });
 
-    res.json({ success: true, data: images });
+    console.log("👉 Found:", data.length);
+
+    res.json({ success: true, data: data });
   } catch (err) {
     console.error("FETCH ERROR:", err);
     res.status(500).json({ success: false, error: err.message });

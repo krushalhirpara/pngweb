@@ -59,7 +59,7 @@ function ImageDetailPage() {
 
         let apiImages = [];
         try {
-          const res = await axios.get(`${serverUrl}/api/admin/images`);
+          const res = await axios.get(`https://pngweb-production.up.railway.app/api/images`);
           if (res.data.success) {
             apiImages = res.data.data;
           }
@@ -72,7 +72,8 @@ function ImageDetailPage() {
         const found = allImages.find(img => img.slug === slug);
 
         if (found) {
-          const src = found.isLocal ? found.imageUrl : `${serverUrl}${found.imageUrl}`;
+          // If it's an absolute URL, use it directly. Otherwise, it's a local asset.
+          const src = found.imageUrl.startsWith("http") ? found.imageUrl : found.imageUrl;
           setItem({
             ...found,
             src: src,

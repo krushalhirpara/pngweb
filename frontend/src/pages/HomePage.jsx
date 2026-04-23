@@ -74,7 +74,7 @@ function HomePage() {
   const fetchImages = async () => {
     try {
       setIsLoading(true);
-      const res = await axios.get("https://pngwale.com/api/admin/images");
+      const res = await axios.get("https://pngweb-production.up.railway.app/api/images");
       if (res.data.success) {
         setImages([...localImages, ...res.data.data]);
       }
@@ -85,23 +85,30 @@ function HomePage() {
     }
   };
 
-  // 🔥 FILTER (Alphabet & Numbers remove everywhere)
+  // 🔥 FILTER (Robust filtering for production)
   const filteredImages = useMemo(() => {
-    let result = images.filter(
-      (img) => !["Alphabet", "Numbers"].includes(img.category)
-    );
+    // 1. Initial images set
+    let result = images;
 
-    if (activeCategory !== "All") {
+    // 2. Category Filter
+    if (activeCategory && activeCategory !== "All") {
       result = result.filter((img) => img.category === activeCategory);
     }
 
+    // 3. Search Query Filter
     if (query) {
-      result = result.filter((item) =>
-        `${item.title} ${item.tags?.join(" ") || ""}`
-          .toLowerCase()
-          .includes(query)
-      );
+      result = result.filter((item) => {
+        const title = (item.title || "").toLowerCase();
+        const tags = (item.tags || []).join(" ").toLowerCase();
+        const cat = (item.category || "").toLowerCase();
+        return title.includes(query) || tags.includes(query) || cat.includes(query);
+      });
     }
+
+    // 4. Remove unwanted categories (Alphabet/Numbers)
+    result = result.filter(
+      (img) => !["Alphabet", "Numbers"].includes(img.category)
+    );
 
     return result;
   }, [activeCategory, query, images]);

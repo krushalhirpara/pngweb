@@ -88,7 +88,7 @@ router.post("/upload", auth, upload.single("image"), async (req, res) => {
 
     const newImage = new Image({
       title,
-      category,
+      category: category === "All" ? "Vector" : category, // Map "All" to valid category
       tags: tags ? tags.split(",").map((t) => t.trim()) : [],
       imageUrl: `/uploads/${filename}`,
       slug,
@@ -145,7 +145,7 @@ router.get("/images", async (req, res) => {
     const data = images.map(img => {
       const imageUrl = img.imageUrl.startsWith("http")
         ? img.imageUrl
-        : `https://pngwale.com${img.imageUrl}`;
+        : `https://pngweb-production.up.railway.app${img.imageUrl}`;
       
       return {
         ...img.toObject(),
