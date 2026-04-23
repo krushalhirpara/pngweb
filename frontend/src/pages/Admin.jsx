@@ -96,20 +96,19 @@ const Admin = () => {
         file: imageFile.name
       });
 
-      const form = new FormData();
-      form.append("image", imageFile); // Multer expects "image"
-      form.append("title", formData.title);
-      form.append("category", formData.category);
-      form.append("tags", formData.tags);
+      const formData = new FormData();
+      formData.append("image", imageFile);
+      formData.append("title", formDataState.title);
+      formData.append("category", formDataState.category);
+      formData.append("tags", formDataState.tags);
 
-      console.log("📡 Sending POST request to /api/admin/upload...");
       const res = await axios.post(
-        "/api/admin/upload",
-        form,
+        "https://pngweb-production.up.railway.app/api/admin/upload",
+        formData,
         {
           headers: {
             "Content-Type": "multipart/form-data",
-            Authorization: `Bearer ${token}`
+            Authorization: `Bearer ${localStorage.getItem("token")}`
           }
         }
       );
@@ -118,7 +117,7 @@ const Admin = () => {
 
       if (res.data.success) {
         toast.success("Image Uploaded Successfully!");
-        
+
         // Reset form
         setFormData({
           title: "",
@@ -127,7 +126,7 @@ const Admin = () => {
         });
         setImageFile(null);
         setPreview(null);
-        
+
         console.log("🔄 Refreshing image list...");
         fetchImages();
       }
