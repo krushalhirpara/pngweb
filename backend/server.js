@@ -16,6 +16,7 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 // ================= ROUTES =================
 app.use("/api", require("./routes"));
 app.use("/api/admin", require("./routes/admin"));
+app.use("/api", require("./routes/contact"));
 
 // ================= IMAGE SITEMAP =================
 const Image = require("./models/Image");
