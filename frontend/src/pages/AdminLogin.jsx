@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { toast } from 'react-hot-toast';
 import { FiLock } from 'react-icons/fi';
 import { useNavigate } from 'react-router-dom';
-import API from '../api';
+import axios from 'axios';
 
 const AdminLogin = () => {
   const [secretKey, setSecretKey] = useState('');
