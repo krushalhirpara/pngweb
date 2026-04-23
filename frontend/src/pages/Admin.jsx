@@ -65,25 +65,44 @@ const Admin = () => {
 
   const handleUpload = async (e) => {
     e.preventDefault();
+    console.log("🚀 Upload process started...");
 
-    if (!imageFile) return toast.error("Please select an image");
-    if (!formData.title.trim()) return toast.error("Enter title");
-    if (!formData.category) return toast.error("Select category");
+    if (!imageFile) {
+      console.log("❌ No image file selected");
+      return toast.error("Please select an image");
+    }
+    if (!formData.title.trim()) {
+      console.log("❌ No title entered");
+      return toast.error("Enter title");
+    }
+    if (!formData.category) {
+      console.log("❌ No category selected");
+      return toast.error("Select category");
+    }
 
     const token = localStorage.getItem("token");
     if (!token) {
+      console.log("❌ No token found in localStorage");
       toast.error("Session expired, please login again");
       return handleLogout();
     }
 
     try {
       setLoading(true);
+      console.log("📦 Preparing FormData...", {
+        title: formData.title,
+        category: formData.category,
+        tags: formData.tags,
+        file: imageFile.name
+      });
+
       const form = new FormData();
-      form.append("image", imageFile);
+      form.append("image", imageFile); // Multer expects "image"
       form.append("title", formData.title);
       form.append("category", formData.category);
       form.append("tags", formData.tags);
 
+      console.log("📡 Sending POST request to /api/admin/upload...");
       const res = await axios.post(
         "/api/admin/upload",
         form,
@@ -95,26 +114,35 @@ const Admin = () => {
         }
       );
 
+      console.log("✅ Response received:", res.data);
+
       if (res.data.success) {
-        toast.success("Image Uploaded");
+        toast.success("Image Uploaded Successfully!");
+        
+        // Reset form
         setFormData({
           title: "",
-          category: allCategories[0] || "Vector",
+          category: allCategories.filter(c => c !== 'All')[0] || "Vector",
           tags: ""
         });
         setImageFile(null);
         setPreview(null);
+        
+        console.log("🔄 Refreshing image list...");
         fetchImages();
       }
     } catch (err) {
-      console.error(err);
+      console.error("🔥 UPLOAD ERROR:", err);
       if (err.response?.status === 401) {
+        console.log("🚫 Unauthorized - logging out...");
         handleLogout();
       } else {
-        toast.error(err.response?.data?.message || "Upload failed");
+        const errorMsg = err.response?.data?.message || "Upload failed. Please try again.";
+        toast.error(errorMsg);
       }
     } finally {
       setLoading(false);
+      console.log("🏁 Upload process finished.");
     }
   };
 
