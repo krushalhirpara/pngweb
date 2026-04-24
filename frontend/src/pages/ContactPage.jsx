@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { toast } from 'react-hot-toast';
+import { FiMail, FiUser, FiMessageSquare, FiSend, FiInfo } from 'react-icons/fi';
 
-function ContactPage() {
+const ContactPage = () => {
   const [formData, setFormData] = useState({
     name: '',
     email: '',
@@ -15,122 +16,164 @@ function ContactPage() {
     setFormData((prev) => ({ ...prev, [name]: value }));
   };
 
+  const validate = () => {
+    if (!formData.name.trim()) return "Full Name is required";
+    if (!formData.email.trim()) return "Email address is required";
+    if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(formData.email)) return "Invalid email format";
+    if (!formData.message.trim()) return "Message cannot be empty";
+    return null;
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    if (!formData.name || !formData.email || !formData.message) {
-      return toast.error("Please fill all fields");
-    }
-
-    if (!/\S+@\S+\.\S+/.test(formData.email)) {
-      return toast.error("Enter valid email");
-    }
+    const error = validate();
+    if (error) return toast.error(error);
 
     setLoading(true);
 
     try {
-      console.log("🚀 Attempting to send message directly to Railway...");
+      console.log("🚀 Sending inquiry to api.pngwale.com...");
       
-      // ✅ DIRECT API CALL (No more .htaccess proxy dependency)
-      const res = await axios.post("https://pngweb-production.up.railway.app/api/contact", formData);
+      // ✅ DIRECT API CALL (Production Ready)
+      const response = await axios.post("https://api.pngwale.com/api/contact", formData);
 
-      if (res.data.success) {
+      if (response.data.success) {
         toast.success("Message sent successfully!");
         setFormData({ name: "", email: "", message: "" });
       } else {
-        toast.error(res.data.message || "Failed to send message");
+        toast.error(response.data.message || "Failed to send message");
       }
 
     } catch (err) {
-      console.error("🔥 Direct API Error:", err);
-      const errorMessage = err.response?.data?.message || err.message || "Server connection failed";
-      toast.error(errorMessage);
+      console.error("🔥 Contact Error:", err);
+      const message = err.response?.data?.message || err.message || "Server connection failed";
+      toast.error(message);
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="mx-auto max-w-7xl px-4 py-12 md:px-8">
-      <section className="rounded-3xl border border-slate-200 bg-white p-6 shadow-xl md:p-8 dark:border-slate-700 dark:bg-slate-800 transition-all duration-300">
-        <div className="grid items-start gap-8 lg:grid-cols-[minmax(280px,0.9fr)_minmax(0,1.1fr)] lg:gap-10">
-          <div className="rounded-2xl bg-slate-900 p-6 text-white dark:bg-slate-950">
-            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.28em] text-blue-400">Contact Us</p>
-            <h1 className="mb-4 text-3xl font-black">Reach PNGWALE</h1>
-            <p className="text-sm leading-7 text-slate-300">
-              For copyright claims, custom design requests, or business inquiries, please use the form below. 
-              Our team typically responds within 24-48 hours.
-            </p>
-            
-            <div className="mt-8 space-y-4">
-              <div className="rounded-xl border border-white/10 bg-white/5 p-4 flex items-center gap-3">
-                <span className="h-2 w-2 rounded-full bg-blue-500"></span>
-                <span className="text-sm"><strong>Support:</strong> support@pngwale.com</span>
+    <div className="min-h-screen bg-slate-50 dark:bg-slate-950 py-12 px-4 sm:px-6 lg:px-8">
+      <div className="max-w-5xl mx-auto">
+        <div className="text-center mb-16">
+          <h1 className="text-4xl font-black text-slate-900 dark:text-white sm:text-5xl tracking-tight">
+            Get in <span className="text-blue-600">Touch</span>
+          </h1>
+          <p className="mt-4 text-lg text-slate-600 dark:text-slate-400 max-w-2xl mx-auto">
+            Have questions about our PNG assets, licensing, or custom requests? We're here to help you create something amazing.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-12 items-start">
+          {/* Info Side */}
+          <div className="lg:col-span-2 space-y-8">
+            <div className="bg-white dark:bg-slate-900 p-8 rounded-3xl shadow-xl shadow-slate-200/50 dark:shadow-none border border-slate-100 dark:border-slate-800">
+              <h2 className="text-2xl font-bold text-slate-900 dark:text-white mb-6">Contact Information</h2>
+              
+              <div className="space-y-6">
+                <div className="flex items-start gap-4">
+                  <div className="p-3 bg-blue-50 dark:bg-blue-900/30 rounded-xl text-blue-600 dark:text-blue-400">
+                    <FiMail size={24} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-slate-500 dark:text-slate-500 uppercase tracking-wider">Email Us</p>
+                    <p className="text-lg font-bold text-slate-800 dark:text-slate-200">support@pngwale.com</p>
+                  </div>
+                </div>
+
+                <div className="flex items-start gap-4">
+                  <div className="p-3 bg-indigo-50 dark:bg-indigo-900/30 rounded-xl text-indigo-600 dark:text-indigo-400">
+                    <FiInfo size={24} />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-slate-500 dark:text-slate-500 uppercase tracking-wider">Response Time</p>
+                    <p className="text-lg font-bold text-slate-800 dark:text-slate-200">Within 24-48 Hours</p>
+                  </div>
+                </div>
               </div>
-              <div className="rounded-xl border border-white/10 bg-white/5 p-4 text-xs text-slate-400 leading-relaxed">
-                Tip: Include specific image URLs or IDs for faster resolution of technical issues.
+
+              <div className="mt-10 pt-10 border-t border-slate-100 dark:border-slate-800">
+                <div className="bg-amber-50 dark:bg-amber-900/20 p-4 rounded-2xl border border-amber-100 dark:border-amber-800/30">
+                  <p className="text-sm text-amber-800 dark:text-amber-300 leading-relaxed">
+                    <strong>Note:</strong> For copyright claims, please include the specific image URL and proof of ownership for faster resolution.
+                  </p>
+                </div>
               </div>
             </div>
           </div>
 
-          <form onSubmit={handleSubmit} className="grid gap-5">
-            <div className="grid gap-2">
-              <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Full Name</label>
-              <input
-                name="name"
-                value={formData.name}
-                onChange={handleChange}
-                required
-                className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 dark:border-slate-700 dark:bg-slate-900 dark:text-white transition-all"
-                placeholder="John Doe"
-              />
-            </div>
+          {/* Form Side */}
+          <div className="lg:col-span-3">
+            <form onSubmit={handleSubmit} className="bg-white dark:bg-slate-900 p-8 md:p-10 rounded-3xl shadow-xl shadow-slate-200/50 dark:shadow-none border border-slate-100 dark:border-slate-800 space-y-6">
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                  <FiUser className="text-blue-500" /> Full Name
+                </label>
+                <input
+                  type="text"
+                  name="name"
+                  value={formData.name}
+                  onChange={handleChange}
+                  placeholder="Enter your name"
+                  className="w-full px-5 py-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                />
+              </div>
 
-            <div className="grid gap-2">
-              <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Email Address</label>
-              <input
-                name="email"
-                type="email"
-                value={formData.email}
-                onChange={handleChange}
-                required
-                className="rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 dark:border-slate-700 dark:bg-slate-900 dark:text-white transition-all"
-                placeholder="john@example.com"
-              />
-            </div>
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                  <FiMail className="text-blue-500" /> Email Address
+                </label>
+                <input
+                  type="email"
+                  name="email"
+                  value={formData.email}
+                  onChange={handleChange}
+                  placeholder="your@email.com"
+                  className="w-full px-5 py-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
+                />
+              </div>
 
-            <div className="grid gap-2">
-              <label className="text-sm font-semibold text-slate-700 dark:text-slate-300">Message</label>
-              <textarea
-                name="message"
-                value={formData.message}
-                onChange={handleChange}
-                required
-                className="min-h-40 rounded-xl border border-slate-200 bg-slate-50 px-4 py-3 outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 dark:border-slate-700 dark:bg-slate-900 dark:text-white transition-all resize-none"
-                placeholder="How can we help you?"
-              />
-            </div>
+              <div className="space-y-2">
+                <label className="text-sm font-bold text-slate-700 dark:text-slate-300 flex items-center gap-2">
+                  <FiMessageSquare className="text-blue-500" /> Your Message
+                </label>
+                <textarea
+                  name="message"
+                  value={formData.message}
+                  onChange={handleChange}
+                  rows="5"
+                  placeholder="Tell us how we can help..."
+                  className="w-full px-5 py-4 rounded-2xl border border-slate-200 dark:border-slate-800 bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-white outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all resize-none"
+                />
+              </div>
 
-            <button
-              type="submit"
-              disabled={loading}
-              className="w-full sm:w-max rounded-xl bg-blue-600 px-8 py-4 text-sm font-bold text-white hover:bg-blue-700 hover:shadow-lg hover:shadow-blue-500/30 active:scale-[0.98] transition-all disabled:opacity-50 disabled:cursor-not-allowed"
-            >
-              {loading ? (
-                <span className="flex items-center gap-2">
-                  <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
-                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
-                  </svg>
-                  Sending...
-                </span>
-              ) : "Send Message"}
-            </button>
-          </form>
+              <button
+                type="submit"
+                disabled={loading}
+                className="w-full py-5 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black text-lg shadow-lg shadow-blue-500/30 active:scale-[0.98] transition-all flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                {loading ? (
+                  <>
+                    <svg className="animate-spin h-6 w-6 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    Processing...
+                  </>
+                ) : (
+                  <>
+                    <FiSend /> Send Message
+                  </>
+                )}
+              </button>
+            </form>
+          </div>
         </div>
-      </section>
+      </div>
     </div>
   );
-}
+};
 
 export default ContactPage;

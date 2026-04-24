@@ -7,20 +7,24 @@ const path = require("path");
 const app = express();
 
 // ================= MIDDLEWARE =================
+// ✅ CORS: Allow production domain and localhost
 app.use(cors({
   origin: ["https://pngwale.com", "http://localhost:5173"],
   methods: ["GET", "POST", "PUT", "DELETE"],
   credentials: true
 }));
+
+// ✅ JSON body parser (REQUIRED for contact form)
 app.use(express.json());
 
 // ================= STATIC FILES =================
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // ================= ROUTES =================
-app.use("/api", require("./routes"));
+// ✅ Registering routes properly
 app.use("/api/admin", require("./routes/admin"));
 app.use("/api", require("./routes/contact"));
+app.use("/api", require("./routes")); // General routes last
 
 // ================= IMAGE SITEMAP =================
 const Image = require("./models/Image");
@@ -66,7 +70,6 @@ app.get("/sitemap.xml", async (req, res) => {
 
     xml += `</urlset>`;
 
-    // ✅ IMPORTANT FIX
     res.set("Content-Type", "application/xml");
     res.send(xml);
 
