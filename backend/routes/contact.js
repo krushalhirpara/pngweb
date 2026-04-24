@@ -1,46 +1,27 @@
 const express = require("express");
 const router = express.Router();
-const nodemailer = require("nodemailer");
+const { Resend } = require("resend");
 
-// ✅ Create transporter (Gmail SMTP - stable config)
-const createTransporter = () => {
-    return nodemailer.createTransport({
-        service: "gmail",
-        auth: {
-            user: process.env.EMAIL_USER,
-            pass: process.env.EMAIL_PASS, // App Password
-        },
-        connectionTimeout: 10000, // 10 sec
-        greetingTimeout: 10000,
-        socketTimeout: 15000,
-    });
-};
+const resend = new Resend(process.env.RESEND_API_KEY);
 
-// 🧪 TEST ROUTE: GET /api/test-email
+// ================= TEST ROUTE =================
 router.get("/test-email", async (req, res) => {
     try {
         console.log("🧪 TEST EMAIL TRIGGERED");
 
-        const transporter = createTransporter();
-
-        // Verify SMTP
-        await transporter.verify();
-        console.log("✅ SMTP VERIFIED");
-
-        const info = await transporter.sendMail({
-            from: `"PNGWALE System" <${process.env.EMAIL_USER}>`,
-            to: process.env.EMAIL_USER,
-            subject: "✅ SMTP Test Success",
-            text: "SMTP is working perfectly!",
+        const response = await resend.emails.send({
+            from: "PNGWALE <onboarding@resend.dev>",
+            to: [process.env.EMAIL_USER], // your email
+            subject: "✅ Email Test Success",
             html: `
-                <div style="font-family: sans-serif; padding: 20px;">
-                    <h2 style="color: green;">SMTP Connected Successfully 🚀</h2>
-                    <p>Your email system is now fully working.</p>
+                <div style="font-family:sans-serif;padding:20px;">
+                    <h2 style="color:green;">Email Working 🚀</h2>
+                    <p>Your contact system is fully working now.</p>
                 </div>
             `,
         });
 
-        console.log("📨 TEST EMAIL SENT:", info.messageId);
+        console.log("📨 TEST EMAIL SENT:", response);
 
         res.json({
             success: true,
@@ -48,7 +29,7 @@ router.get("/test-email", async (req, res) => {
         });
 
     } catch (err) {
-        console.error("❌ TEST EMAIL ERROR:", err);
+        console.error("❌ TEST ERROR:", err);
 
         res.status(500).json({
             success: false,
@@ -57,7 +38,7 @@ router.get("/test-email", async (req, res) => {
     }
 });
 
-// 🚀 CONTACT ROUTE: POST /api/contact
+// ================= CONTACT ROUTE =================
 router.post("/contact", async (req, res) => {
     try {
         const { name, email, message } = req.body;
@@ -80,16 +61,11 @@ router.post("/contact", async (req, res) => {
             });
         }
 
-        const transporter = createTransporter();
-
-        // 🔍 Verify SMTP before sending
-        await transporter.verify();
-        console.log("✅ SMTP READY");
-
-        const mailOptions = {
-            from: `"PNGWALE Contact" <${process.env.EMAIL_USER}>`,
-            to: process.env.EMAIL_USER,
-            replyTo: email,
+        // ✅ SEND EMAIL (NO SMTP)
+        await resend.emails.send({
+            from: "PNGWALE <onboarding@resend.dev>",
+            to: [process.env.EMAIL_USER], // where you receive message
+            reply_to: email,
             subject: `New Contact Message from ${name}`,
             html: `
                 <div style="max-width:600px;margin:auto;font-family:sans-serif;border:1px solid #eee;border-radius:12px;overflow:hidden;">
@@ -105,9 +81,7 @@ router.post("/contact", async (req, res) => {
                     </div>
                 </div>
             `,
-        };
-
-        await transporter.sendMail(mailOptions);
+        });
 
         console.log("✅ EMAIL SENT SUCCESSFULLY");
 
