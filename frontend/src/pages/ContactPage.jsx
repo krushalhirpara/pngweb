@@ -17,30 +17,39 @@ function ContactPage() {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    
-    // Basic validation
+
+    // ✅ Validation
     if (!formData.name || !formData.email || !formData.message) {
       return toast.error("Please fill all fields");
     }
 
+    if (!/\S+@\S+\.\S+/.test(formData.email)) {
+      return toast.error("Enter valid email");
+    }
+
     setLoading(true);
+
     try {
       console.log("🚀 Sending contact message...", formData);
-      
-      const res = await axios.post(
-        "https://pngweb-production.up.railway.app/api/contact",
-        formData
-      );
+
+      const res = await axios.post("/api/contact", formData);
 
       if (res.data.success) {
         toast.success("Message sent successfully!");
-        setFormData({ name: '', email: '', message: '' }); // Clear form
+        setFormData({ name: "", email: "", message: "" });
       } else {
-        toast.error("Failed to send message. Please try again.");
+        toast.error("Failed to send message");
       }
+
     } catch (err) {
-      console.error("🔥 Contact Form Error:", err);
-      toast.error(err.response?.data?.message || "Something went wrong. Please try later.");
+      console.error("🔥 Contact Error:", err);
+
+      if (err.response) {
+        toast.error(err.response.data.message);
+      } else {
+        toast.error("Server not reachable");
+      }
+
     } finally {
       setLoading(false);
     }

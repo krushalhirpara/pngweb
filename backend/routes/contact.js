@@ -7,7 +7,7 @@ router.post("/contact", async (req, res) => {
     try {
         const { name, email, message } = req.body;
 
-        // ✅ 1. Validation
+        // ✅ VALIDATION
         if (!name || !email || !message) {
             return res.status(400).json({
                 success: false,
@@ -15,9 +15,16 @@ router.post("/contact", async (req, res) => {
             });
         }
 
-        console.log("📩 Contact Request:", { name, email });
+        // ✅ EMAIL FORMAT CHECK
+        const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+        if (!emailRegex.test(email)) {
+            return res.status(400).json({
+                success: false,
+                message: "Invalid email format",
+            });
+        }
 
-        // ✅ 2. Transporter (Hostinger SMTP)
+        // ✅ SMTP SETUP (IMPORTANT FIX)
         const transporter = nodemailer.createTransport({
             host: "smtp.hostinger.com",
             port: 465,
@@ -26,35 +33,35 @@ router.post("/contact", async (req, res) => {
                 user: process.env.EMAIL_USER,
                 pass: process.env.EMAIL_PASS,
             },
+            tls: {
+                rejectUnauthorized: false,
+            },
         });
 
-        // ✅ 3. Verify SMTP (IMPORTANT DEBUG)
+        // 🔥 DEBUG (VERY IMPORTANT)
         await transporter.verify();
         console.log("✅ SMTP connected");
 
-        // ✅ 4. Mail content
+        // ✅ EMAIL CONTENT
         const mailOptions = {
             from: `"PNGWALE" <${process.env.EMAIL_USER}>`,
             to: process.env.EMAIL_USER,
             replyTo: email,
             subject: `New Contact from ${name}`,
             html: `
-                <h2>New Contact Message</h2>
-                <p><b>Name:</b> ${name}</p>
-                <p><b>Email:</b> ${email}</p>
-                <p><b>Message:</b></p>
-                <p>${message}</p>
-            `,
+        <h2>New Contact Message</h2>
+        <p><b>Name:</b> ${name}</p>
+        <p><b>Email:</b> ${email}</p>
+        <p><b>Message:</b><br/>${message}</p>
+      `,
         };
 
-        // ✅ 5. Send mail
-        const info = await transporter.sendMail(mailOptions);
+        // ✅ SEND MAIL
+        await transporter.sendMail(mailOptions);
 
-        console.log("📧 Email Sent:", info.messageId);
-
-        return res.status(200).json({
+        return res.json({
             success: true,
-            message: "Message sent successfully",
+            message: "Email sent successfully",
         });
 
     } catch (err) {
@@ -62,7 +69,7 @@ router.post("/contact", async (req, res) => {
 
         return res.status(500).json({
             success: false,
-            message: err.message || "Server error",
+            message: "Server error - mail not sent",
         });
     }
 });
