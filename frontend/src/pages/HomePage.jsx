@@ -139,15 +139,19 @@ function HomePage() {
           <div className="absolute left-1/2 -bottom-[20%] h-[300px] w-[400px] md:h-[500px] md:w-[700px] -translate-x-1/2 rounded-full bg-[#22d3ee] opacity-70 dark:opacity-50 blur-[80px] md:blur-[100px]" />
         </div>
 
-        <div className="relative z-10 mx-auto max-w-4xl px-4">
-          <h1 className="mb-4 text-3xl font-black tracking-tight text-slate-900 sm:text-5xl md:text-6xl lg:text-7xl dark:text-white">
-            Creative Images <span className="bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent">PNGWALE</span>
+        <div className="relative z-10 mx-auto max-w-4xl px-4 flex flex-col items-center">
+          <h1 className="text-3xl font-black tracking-tight text-slate-900 sm:text-5xl md:text-6xl lg:text-7xl dark:text-white leading-tight">
+            Creative Images
           </h1>
-          <p className="mb-8 text-base font-medium text-slate-600 md:mb-10 md:text-xl dark:text-slate-300">
+          <div className="font-cursive text-3xl sm:text-5xl md:text-6xl bg-gradient-to-r from-blue-600 to-indigo-600 bg-clip-text text-transparent mt-2 sm:mt-4 tracking-wide leading-relaxed drop-shadow-sm pb-4">
+            PNGWALE
+          </div>
+          
+          <p className="mb-8 text-base font-medium text-slate-600 md:mb-10 md:text-xl dark:text-slate-300 mt-4">
             Download high-quality transparent PNG images
           </p>
 
-          <form onSubmit={handleHeroSearch} className="mx-auto max-w-2xl">
+          <form onSubmit={handleHeroSearch} className="mx-auto max-w-2xl w-full">
             <div className="relative group flex flex-col gap-3 sm:block">
               <input
                 type="text"

@@ -103,6 +103,42 @@ router.post("/upload", auth, upload.single("image"), async (req, res) => {
   }
 });
 
+// ===== UPDATE ROUTE =====
+router.put("/update/:id", auth, async (req, res) => {
+  try {
+    const { title, category, tags } = req.body;
+    const image = await Image.findById(req.params.id);
+
+    if (!image) {
+      return res.status(404).json({ success: false, message: "Image not found" });
+    }
+
+    // Update fields
+    if (title) image.title = title;
+    if (category) image.category = category;
+    if (tags) {
+      image.tags = Array.isArray(tags) ? tags : tags.split(",").map((t) => t.trim());
+    }
+
+    // Regenerate slug if title changed (optional but good for SEO)
+    if (title && title !== image.title) {
+      image.slug =
+        title.toLowerCase()
+          .replace(/\s+/g, "-")
+          .replace(/[^a-z0-9-]/g, "") +
+        "-" +
+        Date.now();
+    }
+
+    await image.save();
+
+    res.json({ success: true, message: "Image updated successfully", data: image });
+  } catch (err) {
+    console.error("UPDATE ERROR:", err);
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
 // ===== DELETE ROUTE =====
 router.delete("/delete/:id", auth, async (req, res) => {
   try {

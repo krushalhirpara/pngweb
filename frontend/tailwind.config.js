@@ -16,6 +16,9 @@ export default {
       boxShadow: {
         soft: '0 12px 35px -18px rgba(16, 35, 77, 0.35)',
       },
+      fontFamily: {
+        cursive: ['Dancing Script', 'cursive'],
+      },
     },
   },
   plugins: [],
