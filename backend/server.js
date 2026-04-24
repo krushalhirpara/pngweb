@@ -7,7 +7,11 @@ const path = require("path");
 const app = express();
 
 // ================= MIDDLEWARE =================
-app.use(cors());
+app.use(cors({
+  origin: ["https://pngwale.com", "http://localhost:5173"],
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true
+}));
 app.use(express.json());
 
 // ================= STATIC FILES =================
