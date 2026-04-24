@@ -5,6 +5,8 @@ const path = require("path");
 const fs = require("fs");
 const jwt = require("jsonwebtoken");
 const sharp = require("sharp");
+const xlsx = require("xlsx");
+const axios = require("axios");
 
 console.log("ADMIN ROUTES LOADED");
 
@@ -17,12 +19,27 @@ if (!fs.existsSync(uploadDir)) {
   fs.mkdirSync(uploadDir, { recursive: true });
 }
 
-// ===== multer config (memory storage for sharp processing) =====
+// ===== multer config (memory storage for processing) =====
 const storage = multer.memoryStorage();
 const upload = multer({
   storage,
-  limits: { fileSize: 10 * 1024 * 1024 } // 10MB limitD
+  limits: { fileSize: 10 * 1024 * 1024 } // 10MB limit
 });
+
+// Utility to download image from URL
+async function downloadImage(url, dest) {
+  const response = await axios({
+    url,
+    method: 'GET',
+    responseType: 'stream'
+  });
+  return new Promise((resolve, reject) => {
+    const writer = fs.createWriteStream(dest);
+    response.data.pipe(writer);
+    writer.on('finish', resolve);
+    writer.on('error', reject);
+  });
+}
 
 // ===== LOGIN ROUTE =====
 router.post("/login", (req, res) => {
@@ -60,9 +77,6 @@ router.post("/login", (req, res) => {
 // ===== UPLOAD ROUTE (WITH SHARP OPTIMIZATION) =====
 router.post("/upload", auth, upload.single("image"), async (req, res) => {
   try {
-    console.log("---- UPLOAD START ----");
-    console.log("BODY:", req.body);
-
     if (!req.file) {
       return res.status(400).json({ success: false, message: "No file uploaded" });
     }
@@ -73,32 +87,93 @@ router.post("/upload", auth, upload.single("image"), async (req, res) => {
 
     // 🔥 OPTIMIZE WITH SHARP
     await sharp(req.file.buffer)
-      .png({ quality: 80, compressionLevel: 9 }) // Optimized PNG lossy compression
+      .png({ quality: 80, compressionLevel: 9 })
       .toFile(outputPath);
 
-    console.log("✅ File Optimized & Saved:", filename);
-
-    const slug =
-      (title || "img")
-        .toLowerCase()
-        .replace(/\s+/g, "-")
-        .replace(/[^a-z0-9-]/g, "") +
-      "-" +
-      Date.now();
+    const slug = (title || "img").toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "") + "-" + Date.now();
 
     const newImage = new Image({
       title,
-      category: category === "All" ? "Vector" : category, // Map "All" to valid category
+      category: category === "All" ? "Vector" : category,
       tags: tags ? tags.split(",").map((t) => t.trim()) : [],
       imageUrl: `/uploads/${filename}`,
       slug,
     });
 
     await newImage.save();
-
     res.json({ success: true, data: newImage });
   } catch (err) {
-    console.error("UPLOAD ERROR:", err);
+    res.status(500).json({ success: false, message: err.message });
+  }
+});
+
+// ===== BULK UPLOAD VIA EXCEL =====
+router.post("/bulk-upload", auth, upload.single("excel"), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: "No Excel file uploaded" });
+    }
+
+    const workbook = xlsx.read(req.file.buffer, { type: 'buffer' });
+    const sheetName = workbook.SheetNames[0];
+    const worksheet = workbook.Sheets[sheetName];
+    const rows = xlsx.utils.sheet_to_json(worksheet);
+
+    let successCount = 0;
+    let failedCount = 0;
+    const failedRows = [];
+
+    for (let i = 0; i < rows.length; i++) {
+      const row = rows[i];
+      const { image_url, title, category, tags } = row;
+
+      if (!image_url || !title || !category) {
+        failedCount++;
+        failedRows.push({ row: i + 2, reason: "Missing required fields (image_url, title, or category)" });
+        continue;
+      }
+
+      try {
+        // Generate unique filename
+        const ext = path.extname(image_url.split('?')[0]) || '.png';
+        const filename = `bulk-${Date.now()}-${Math.floor(Math.random() * 1000)}${ext}`;
+        const dest = path.join(uploadDir, filename);
+
+        // Download image
+        await downloadImage(image_url, dest);
+
+        // Create DB entry
+        const slug = title.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "") + "-" + Date.now();
+        const tagArray = tags ? String(tags).split(",").map(t => t.trim()) : [];
+
+        const newImage = new Image({
+          title,
+          category,
+          tags: tagArray,
+          imageUrl: `/uploads/${filename}`,
+          slug,
+        });
+
+        await newImage.save();
+        successCount++;
+      } catch (err) {
+        failedCount++;
+        failedRows.push({ row: i + 2, reason: err.message });
+      }
+    }
+
+    res.json({
+      success: true,
+      summary: {
+        total: rows.length,
+        success: successCount,
+        failed: failedCount,
+        failedRows
+      }
+    });
+
+  } catch (err) {
+    console.error("BULK UPLOAD ERROR:", err);
     res.status(500).json({ success: false, message: err.message });
   }
 });
@@ -109,32 +184,21 @@ router.put("/update/:id", auth, async (req, res) => {
     const { title, category, tags } = req.body;
     const image = await Image.findById(req.params.id);
 
-    if (!image) {
-      return res.status(404).json({ success: false, message: "Image not found" });
-    }
+    if (!image) return res.status(404).json({ success: false, message: "Image not found" });
 
-    // Update fields
     if (title) image.title = title;
     if (category) image.category = category;
     if (tags) {
       image.tags = Array.isArray(tags) ? tags : tags.split(",").map((t) => t.trim());
     }
 
-    // Regenerate slug if title changed (optional but good for SEO)
     if (title && title !== image.title) {
-      image.slug =
-        title.toLowerCase()
-          .replace(/\s+/g, "-")
-          .replace(/[^a-z0-9-]/g, "") +
-        "-" +
-        Date.now();
+      image.slug = title.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "") + "-" + Date.now();
     }
 
     await image.save();
-
     res.json({ success: true, message: "Image updated successfully", data: image });
   } catch (err) {
-    console.error("UPDATE ERROR:", err);
     res.status(500).json({ success: false, message: err.message });
   }
 });
@@ -143,62 +207,29 @@ router.put("/update/:id", auth, async (req, res) => {
 router.delete("/delete/:id", auth, async (req, res) => {
   try {
     const image = await Image.findById(req.params.id);
+    if (!image) return res.status(404).json({ success: false, message: "Image not found" });
 
-    if (!image) {
-      return res.status(404).json({
-        success: false,
-        message: "Image not found",
-      });
-    }
-
-    // Delete file from uploads folder
     const filePath = path.join(__dirname, "..", image.imageUrl);
-    if (fs.existsSync(filePath)) {
-      fs.unlinkSync(filePath);
-    }
+    if (fs.existsSync(filePath)) fs.unlinkSync(filePath);
 
     await Image.findByIdAndDelete(req.params.id);
-
-    res.json({
-      success: true,
-      message: "Image deleted",
-    });
+    res.json({ success: true, message: "Image deleted" });
   } catch (err) {
-    console.error("DELETE ERROR:", err);
-    res.status(500).json({
-      success: false,
-      message: err.message,
-    });
+    res.status(500).json({ success: false, message: err.message });
   }
 });
 
 // ===== GET ALL IMAGES =====
 router.get("/images", async (req, res) => {
   try {
-    console.log("GET /images HIT");
     const images = await Image.find().sort({ createdAt: -1 });
-
-    const data = images.map(img => {
-      const imageUrl = img.imageUrl.startsWith("http")
-        ? img.imageUrl
-        : `https://pngweb-production.up.railway.app${img.imageUrl}`;
-      
-      return {
-        ...img.toObject(),
-        imageUrl
-      };
-    });
-
-    res.json({
-      success: true,
-      data: data,
-    });
+    const data = images.map(img => ({
+      ...img.toObject(),
+      imageUrl: img.imageUrl.startsWith("http") ? img.imageUrl : `https://pngweb-production.up.railway.app${img.imageUrl}`
+    }));
+    res.json({ success: true, data });
   } catch (err) {
-    console.error("FETCH ERROR:", err);
-    res.status(500).json({
-      success: false,
-      message: err.message,
-    });
+    res.status(500).json({ success: false, message: err.message });
   }
 });
 
