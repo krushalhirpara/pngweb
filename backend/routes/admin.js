@@ -117,7 +117,17 @@ router.post("/bulk-upload", auth, upload.single("excel"), async (req, res) => {
     const workbook = xlsx.read(req.file.buffer, { type: 'buffer' });
     const sheetName = workbook.SheetNames[0];
     const worksheet = workbook.Sheets[sheetName];
-    const rows = xlsx.utils.sheet_to_json(worksheet);
+    const rawRows = xlsx.utils.sheet_to_json(worksheet, { defval: "" });
+    
+    // ✅ Normalize Rows (Trim headers, convert to lowercase)
+    const rows = rawRows.map(row => {
+      const normalized = {};
+      Object.keys(row).forEach(k => {
+        const cleanKey = k.trim().toLowerCase();
+        normalized[cleanKey] = row[k];
+      });
+      return normalized;
+    }).filter(row => Object.values(row).some(v => v !== "")); // Skip truly empty rows
 
     let successCount = 0;
     let failedCount = 0;
@@ -127,15 +137,34 @@ router.post("/bulk-upload", auth, upload.single("excel"), async (req, res) => {
       const row = rows[i];
       const { image_url, title, category, tags } = row;
 
-      if (!image_url || !title || !category) {
+      // ✅ Validation
+      const missingFields = [];
+      if (!image_url) missingFields.push("image_url");
+      if (!category) missingFields.push("category");
+      if (!title) missingFields.push("title");
+
+      if (missingFields.length > 0) {
         failedCount++;
-        failedRows.push({ row: i + 2, reason: "Missing required fields (image_url, title, or category)" });
+        failedRows.push({ 
+          row: i + 2, 
+          reason: `Missing required fields: ${missingFields.join(", ")}` 
+        });
+        continue;
+      }
+
+      // ✅ URL Validation
+      try {
+        new URL(image_url);
+      } catch (e) {
+        failedCount++;
+        failedRows.push({ row: i + 2, reason: "Invalid image_url format (must be a full URL)" });
         continue;
       }
 
       try {
         // Generate unique filename
-        const ext = path.extname(image_url.split('?')[0]) || '.png';
+        const urlObj = new URL(image_url);
+        const ext = path.extname(urlObj.pathname) || '.png';
         const filename = `bulk-${Date.now()}-${Math.floor(Math.random() * 1000)}${ext}`;
         const dest = path.join(uploadDir, filename);
 
@@ -143,12 +172,13 @@ router.post("/bulk-upload", auth, upload.single("excel"), async (req, res) => {
         await downloadImage(image_url, dest);
 
         // Create DB entry
-        const slug = title.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "") + "-" + Date.now();
+        const cleanTitle = String(title).trim();
+        const slug = cleanTitle.toLowerCase().replace(/\s+/g, "-").replace(/[^a-z0-9-]/g, "") + "-" + Date.now();
         const tagArray = tags ? String(tags).split(",").map(t => t.trim()) : [];
 
         const newImage = new Image({
-          title,
-          category,
+          title: cleanTitle,
+          category: String(category).trim(),
           tags: tagArray,
           imageUrl: `/uploads/${filename}`,
           slug,
@@ -157,8 +187,9 @@ router.post("/bulk-upload", auth, upload.single("excel"), async (req, res) => {
         await newImage.save();
         successCount++;
       } catch (err) {
+        console.error(`Row ${i + 2} error:`, err.message);
         failedCount++;
-        failedRows.push({ row: i + 2, reason: err.message });
+        failedRows.push({ row: i + 2, reason: `Processing failed: ${err.message}` });
       }
     }
 
