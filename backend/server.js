@@ -7,30 +7,20 @@ const path = require("path");
 const app = express();
 
 // ================= CORS FIX (IMPORTANT) =================
-const allowedOrigins = [
-  "https://pngwale.com",
-  "https://www.pngwale.com",
-  "http://localhost:5173"
-];
 
 app.use(cors({
-  origin: function (origin, callback) {
-    // allow requests with no origin (like Postman)
-    if (!origin) return callback(null, true);
-
-    if (allowedOrigins.includes(origin)) {
-      return callback(null, true);
-    } else {
-      return callback(new Error("CORS not allowed"));
-    }
-  },
+  origin: [
+    "https://pngwale.com",
+    "https://www.pngwale.com",
+    "http://localhost:5173"
+  ],
   methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
   allowedHeaders: ["Content-Type", "Authorization"],
   credentials: true
 }));
 
 // ✅ Handle preflight requests
-app.options("*", cors());
+app.options(/.*/, cors());
 
 // ================= BODY PARSER =================
 app.use(express.json());
@@ -41,6 +31,11 @@ app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 // ================= ROUTES =================
 app.use("/api", require("./routes/contact"));
 app.use("/api/admin", require("./routes/admin"));
+
+// ================= TEST ROUTE =================
+app.get("/api/test", (req, res) => {
+  res.json({ success: true, message: "API WORKING 🚀" });
+});
 
 // ================= HEALTH =================
 app.get("/", (req, res) => {
@@ -71,6 +66,8 @@ const PORT = process.env.PORT || 5000;
 mongoose.connect(process.env.MONGO_URI)
   .then(() => {
     console.log("MongoDB connected");
+    console.log("Server starting...");
+    console.log("PORT:", PORT);
 
     app.listen(PORT, () => {
       console.log(`Server running on port ${PORT}`);

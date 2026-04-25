@@ -333,7 +333,7 @@ function App() {
       )}
       <Toaster position="top-right" reverseOrder={false} />
 
-      <main className={`mx-auto w-full pb-8 ${location.pathname === '/' ? 'pt-0' : 'max-w-7xl px-4 pt-20 md:pt-24 md:px-6'}`}>
+      <main className={`mx-auto w-full pb-8 ${isHomeGradientPage ? 'pt-0' : 'max-w-7xl px-4 pt-20 md:pt-24 md:px-6'}`}>
         <Routes>
           {/* 1. Static/Specific Routes */}
           <Route path="/" element={<HomePage />} />
