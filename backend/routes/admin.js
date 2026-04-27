@@ -256,7 +256,7 @@ router.get("/images", async (req, res) => {
     const images = await Image.find().sort({ createdAt: -1 });
     const data = images.map(img => ({
       ...img.toObject(),
-      imageUrl: img.imageUrl.startsWith("http") ? img.imageUrl : `https://pngweb-production.up.railway.app${img.imageUrl}`
+      imageUrl: img.imageUrl
     }));
     res.json({ success: true, data });
   } catch (err) {

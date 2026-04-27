@@ -29,6 +29,7 @@ app.use(express.json());
 app.use("/uploads", express.static(path.join(__dirname, "uploads")));
 
 // ================= ROUTES =================
+app.use("/api", require("./routes"));
 app.use("/api", require("./routes/contact"));
 app.use("/api/admin", require("./routes/admin"));
 

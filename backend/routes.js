@@ -10,17 +10,10 @@ router.get("/images", async (req, res) => {
 
     const images = await Image.find().sort({ createdAt: -1 });
 
-    const data = images.map(img => {
-      // Ensure absolute URL for frontend
-      const imageUrl = img.imageUrl.startsWith("http")
-        ? img.imageUrl
-        : `https://pngweb-production.up.railway.app${img.imageUrl}`;
-      
-      return {
-        ...img.toObject(),
-        imageUrl
-      };
-    });
+    const data = images.map(img => ({
+      ...img.toObject(),
+      imageUrl: img.imageUrl
+    }));
 
     console.log("👉 Found:", data.length);
 
